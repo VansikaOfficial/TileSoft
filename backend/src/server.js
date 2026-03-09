@@ -19,6 +19,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// temporary routes
+app.get('/seed-admin', async (req, res) => {
+  const bcrypt = require('bcryptjs');
+  const pool = require('./src/config/database');
+  const hash = await bcrypt.hash('admin123', 10);
+  await pool.query(
+    `INSERT INTO users (name, email, password, role) 
+     VALUES ('Admin User', 'admin@tilesoft.com', $1, 'admin')
+     ON CONFLICT (email) DO UPDATE SET password = $1, role = 'admin'`,
+    [hash]
+  );
+  res.json({ message: 'Admin created successfully!' });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);

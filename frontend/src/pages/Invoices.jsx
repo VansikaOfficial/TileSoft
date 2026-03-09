@@ -10,6 +10,19 @@ const COMPANY = { name: 'TileSoft', tagline: 'Smart ERP for Tile Industry', gsti
 
 const TERMS = `1. Goods once sold will not be taken back.\n2. Subject to local jurisdiction.\n3. Payment due within 30 days of invoice date.\n4. Late payment attracts 2% interest per month.\n5. Goods remain property of TileSoft until full payment received.`;
 
+// ── STANDALONE HELPER (accessible by all components) ──
+function getCustomerName(inv, customers = []) {
+  if (inv.customer_name) return inv.customer_name;
+  if (inv.walkin_name) return inv.walkin_name;
+  const fromNotes = inv.notes?.match(/Walk-in: ([^|]+)/)?.[1]?.trim();
+  if (fromNotes) return fromNotes;
+  if (inv.customer_id) {
+    const found = customers.find(c => c.id == inv.customer_id);
+    if (found) return found.name || found.company_name || found.customer_name || found.email || '—';
+  }
+  return 'Walk-in Customer';
+}
+
 // ── HSN GST SUMMARY ──────────────────────────────────────
 function HsnGstSummary({ items }) {
   const grouped = {};
@@ -61,7 +74,7 @@ function HsnGstSummary({ items }) {
 }
 
 // ── PRINT DOCUMENT ───────────────────────────────────────
-function PrintDoc({ inv, mode, onClose }) {
+function PrintDoc({ inv, mode, onClose, customers = [] }) {
   const printRef = useRef();
   const cgst = parseFloat(inv.subtotal || 0) * 0.14;
   const sgst = parseFloat(inv.subtotal || 0) * 0.14;
@@ -146,7 +159,7 @@ function PrintDoc({ inv, mode, onClose }) {
                 <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: 1, fontWeight: 700, marginBottom: 6 }}>
                   {isDeliveryChallan ? 'Deliver To' : 'Bill To'}
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 15 }}>{getCustomerName(inv)}</div>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>{getCustomerName(inv, customers)}</div>
                 {inv.contact_person && <div style={{ fontSize: 12, color: '#64748b' }}>{inv.contact_person}</div>}
                 {inv.walkin_phone && <div style={{ fontSize: 12, color: '#64748b' }}>📱 {inv.walkin_phone}</div>}
                 {inv.address && <div style={{ fontSize: 12, color: '#64748b' }}>{inv.address}</div>}
@@ -416,7 +429,7 @@ export default function Invoices() {
     const phone = customer?.phone?.replace(/\D/g, '');
     const isQuote = inv.status === 'quotation';
     const msg = encodeURIComponent(
-      `Dear ${getCustomerName(inv)},\n\n` +
+      `Dear ${getCustomerName(inv, customers)},\n\n` +
       (isQuote ? `Your *Quotation ${inv.invoice_number}* from TileSoft is ready.\n\n` : `Your invoice *${inv.invoice_number}* from TileSoft is ready.\n\n`) +
       `Amount: *${formatCurrency(inv.total_amount)}*\n` +
       `Date: ${formatDate(inv.invoice_date)}\n` +
@@ -437,20 +450,7 @@ export default function Invoices() {
     return <span className="badge badge-gray">{inv.status?.toUpperCase()}</span>;
   };
 
-  // Resolve customer name: check customer_name, walkin_name, notes, then look up customers array by customer_id
-  const getCustomerName = (inv) => {
-    if (inv.customer_name) return inv.customer_name;
-    if (inv.walkin_name) return inv.walkin_name;
-    const fromNotes = inv.notes?.match(/Walk-in: ([^|]+)/)?.[1]?.trim();
-    if (fromNotes) return fromNotes;
-    if (inv.customer_id) {
-      const found = customers.find(c => c.id == inv.customer_id);
-      if (found) return found.name || found.customer_name || found.email || '—';
-    }
-    return 'Walk-in Customer';
-  };
-
-    const filtered = invoices.filter(inv => {
+  const filtered = invoices.filter(inv => {
     const walkinName = inv.notes?.match(/Walk-in: ([^|]+)/)?.[1]?.trim() || '';
     const matchSearch = !search || inv.invoice_number?.toLowerCase().includes(search.toLowerCase()) || inv.customer_name?.toLowerCase().includes(search.toLowerCase()) || walkinName.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || inv.status === statusFilter;
@@ -575,7 +575,7 @@ export default function Invoices() {
                   ) : filtered.map(inv => (
                     <tr key={inv.id} style={{ background: inv.status === 'quotation' ? '#f0f9ff' : 'white' }}>
                       <td><strong style={{ color: inv.status === 'quotation' ? '#1d4ed8' : '#6366f1' }}>{inv.invoice_number}</strong></td>
-                      <td><strong>{getCustomerName(inv)}</strong></td>
+                      <td><strong>{getCustomerName(inv, customers)}</strong></td>
                       <td style={{ fontSize: 13 }}>{formatDate(inv.invoice_date)}</td>
                       <td>{formatCurrency(inv.subtotal)}</td>
                       <td style={{ fontSize: 13, color: '#64748b' }}>{formatCurrency(parseFloat(inv.total_amount||0)-parseFloat(inv.subtotal||0))}</td>
@@ -612,7 +612,7 @@ export default function Invoices() {
       </div>
 
       {/* Print/View Modal */}
-      {printDoc && <PrintDoc inv={printDoc} mode={printMode} onClose={() => setPrintDoc(null)} />}
+      {printDoc && <PrintDoc inv={printDoc} mode={printMode} onClose={() => setPrintDoc(null)} customers={customers} />}
 
       {/* Partial Payment Modal */}
       {partialModal && (

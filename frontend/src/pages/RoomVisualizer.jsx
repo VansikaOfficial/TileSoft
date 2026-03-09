@@ -256,7 +256,12 @@ export default function RoomVisualizer(){
                     const sel=tab==='floor'?floorTile:wallTile;
                     return(
                       <div key={p.id} onClick={()=>tab==='floor'?setFloorTile(p):setWallTile(p)} style={{padding:'7px 8px',borderRadius:7,cursor:'pointer',border:sel?.id===p.id?'2px solid #6366f1':'1px solid transparent',background:sel?.id===p.id?'#eef2ff':'white',display:'flex',alignItems:'center',gap:8}}>
-                        <div style={{width:20,height:20,borderRadius:4,flexShrink:0,background:TILE_HEX[p.color]||'#e2e8f0',backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,0,0,0.1) 4px,rgba(0,0,0,0.1) 5px),repeating-linear-gradient(90deg,transparent,transparent 4px,rgba(0,0,0,0.1) 4px,rgba(0,0,0,0.1) 5px)'}}/>
+                        <div style={{width:36,height:36,borderRadius:6,flexShrink:0,overflow:'hidden',border:'1px solid #e2e8f0'}}>
+                          {p.image_url
+                            ? <img src={p.image_url} alt={p.product_name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                            : <div style={{width:'100%',height:'100%',background:TILE_HEX[p.color]||'#e2e8f0',backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,0,0,0.1) 4px,rgba(0,0,0,0.1) 5px),repeating-linear-gradient(90deg,transparent,transparent 4px,rgba(0,0,0,0.1) 4px,rgba(0,0,0,0.1) 5px)'}}/>
+                          }
+                        </div>
                         <div style={{overflow:'hidden'}}>
                           <div style={{fontSize:11,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.product_name}</div>
                           <div style={{fontSize:10,color:'#6366f1'}}>₹{p.unit_price}/{p.unit}</div>

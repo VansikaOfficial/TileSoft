@@ -35,12 +35,11 @@ export default function Dashboard() {
     });
   }, []);
 
-  // Payment reminders — overdue + pending > 7 days
+  // Payment reminders — all overdue + all pending
   const reminders = invoices.filter(inv => {
     if (dismissedAlerts.includes(inv.id)) return false;
     if (inv.status === 'overdue') return true;
-    if (inv.status === 'pending' && inv.due_date && new Date(inv.due_date) < new Date()) return true;
-    if (inv.status === 'pending' && daysSince(inv.invoice_date) > 7) return true;
+    if (inv.status === 'pending') return true;
     return false;
   }).slice(0, 5);
 
@@ -56,9 +55,24 @@ export default function Dashboard() {
     { label: 'Total Employees', value: employees.length, icon: '👥', color: 'purple' },
   ];
 
-  const monthlyData = analytics.monthlyTrend?.length
-    ? analytics.monthlyTrend
-    : [{ month: 'Sep', revenue: 0 }, { month: 'Oct', revenue: 0 }, { month: 'Nov', revenue: 0 }, { month: 'Dec', revenue: 0 }, { month: 'Jan', revenue: 0 }, { month: 'Feb', revenue: 0 }];
+  const monthlyData = (() => {
+    if (analytics.monthlyTrend?.length) return analytics.monthlyTrend;
+    // Fallback: calculate from loaded invoices
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const now = new Date();
+    const result = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthInvs = invoices.filter(inv => {
+        if (!inv.invoice_date) return false;
+        const id = new Date(inv.invoice_date);
+        return id.getFullYear() === d.getFullYear() && id.getMonth() === d.getMonth() && inv.status === 'paid';
+      });
+      const revenue = monthInvs.reduce((s, inv) => s + parseFloat(inv.total_amount || 0), 0);
+      result.push({ month: months[d.getMonth()], revenue });
+    }
+    return result;
+  })();
 
   const topProducts = analytics.topProducts?.length ? analytics.topProducts : [{ name: 'No data', sales: 0 }];
 

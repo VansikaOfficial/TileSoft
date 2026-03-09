@@ -76,10 +76,31 @@ function ThreeRoom({floorTile,wallTile,paintColor,room,tileSize}){
     const W=room.w,H=room.h,D=room.d,mk=o=>{o.userData.rm=true;return o;};
     const ts=Math.max(20,Math.min(80,tileSize||40)),n=Math.round(80/ts*6);
     const fhex=floorTile?(TILE_HEX[floorTile.color]||'#c8bfb0'):'#c8bfb0';
-    const ft=new THREE.CanvasTexture(makeTex(fhex,'#9a9080',n));ft.wrapS=ft.wrapT=THREE.RepeatWrapping;ft.repeat.set(W*0.8,D*0.8);
-    const fl=new THREE.Mesh(new THREE.PlaneGeometry(W,D),new THREE.MeshLambertMaterial({map:ft}));fl.rotation.x=-Math.PI/2;fl.receiveShadow=true;scene.add(mk(fl));
+    const loader=new THREE.TextureLoader();
+    loader.crossOrigin='anonymous';
+
+    // Floor texture — use product image if available, else canvas color
+    const floorTex = floorTile?.image_url
+      ? loader.load(floorTile.image_url, t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(W*1.5,D*1.5);})
+      : (() => { const t=new THREE.CanvasTexture(makeTex(fhex,'#9a9080',n));t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(W*0.8,D*0.8);return t; })();
+    if(!floorTile?.image_url){floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;floorTex.repeat.set(W*0.8,D*0.8);}
+
+    const fl=new THREE.Mesh(new THREE.PlaneGeometry(W,D),new THREE.MeshLambertMaterial({map:floorTex}));fl.rotation.x=-Math.PI/2;fl.receiveShadow=true;scene.add(mk(fl));
     const whex=wallTile?(TILE_HEX[wallTile.color]||'#d0ccc4'):null,phex=paintColor?paintColor.hex:'#f0ede8';
-    const wmat=(isBack)=>{if(wallTile&&whex){const wt=Math.round(80/ts*4),wTex=new THREE.CanvasTexture(makeTex(whex,'#b0aba0',wt));wTex.wrapS=wTex.wrapT=THREE.RepeatWrapping;wTex.repeat.set(isBack?W*0.6:D*0.6,H*0.6);return new THREE.MeshLambertMaterial({map:wTex});}return new THREE.MeshLambertMaterial({color:phex});};
+
+    // Wall texture — use product image if available, else canvas color or paint
+    const wmat=(isBack)=>{
+      if(wallTile?.image_url){
+        const wTex=loader.load(wallTile.image_url, t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(isBack?W*0.8:D*0.8,H*0.8);});
+        return new THREE.MeshLambertMaterial({map:wTex});
+      }
+      if(wallTile&&whex){
+        const wt=Math.round(80/ts*4),wTex=new THREE.CanvasTexture(makeTex(whex,'#b0aba0',wt));
+        wTex.wrapS=wTex.wrapT=THREE.RepeatWrapping;wTex.repeat.set(isBack?W*0.6:D*0.6,H*0.6);
+        return new THREE.MeshLambertMaterial({map:wTex});
+      }
+      return new THREE.MeshLambertMaterial({color:phex});
+    };
     const bw=new THREE.Mesh(new THREE.PlaneGeometry(W,H),wmat(true));bw.position.set(0,H/2,-D/2);scene.add(mk(bw));
     const lw=new THREE.Mesh(new THREE.PlaneGeometry(D,H),wmat(false));lw.rotation.y=Math.PI/2;lw.position.set(-W/2,H/2,0);scene.add(mk(lw));
     const rw=new THREE.Mesh(new THREE.PlaneGeometry(D,H),wmat(false));rw.rotation.y=-Math.PI/2;rw.position.set(W/2,H/2,0);scene.add(mk(rw));
@@ -256,12 +277,7 @@ export default function RoomVisualizer(){
                     const sel=tab==='floor'?floorTile:wallTile;
                     return(
                       <div key={p.id} onClick={()=>tab==='floor'?setFloorTile(p):setWallTile(p)} style={{padding:'7px 8px',borderRadius:7,cursor:'pointer',border:sel?.id===p.id?'2px solid #6366f1':'1px solid transparent',background:sel?.id===p.id?'#eef2ff':'white',display:'flex',alignItems:'center',gap:8}}>
-                        <div style={{width:36,height:36,borderRadius:6,flexShrink:0,overflow:'hidden',border:'1px solid #e2e8f0'}}>
-                          {p.image_url
-                            ? <img src={p.image_url} alt={p.product_name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                            : <div style={{width:'100%',height:'100%',background:TILE_HEX[p.color]||'#e2e8f0',backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,0,0,0.1) 4px,rgba(0,0,0,0.1) 5px),repeating-linear-gradient(90deg,transparent,transparent 4px,rgba(0,0,0,0.1) 4px,rgba(0,0,0,0.1) 5px)'}}/>
-                          }
-                        </div>
+                        <div style={{width:20,height:20,borderRadius:4,flexShrink:0,background:TILE_HEX[p.color]||'#e2e8f0',backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,0,0,0.1) 4px,rgba(0,0,0,0.1) 5px),repeating-linear-gradient(90deg,transparent,transparent 4px,rgba(0,0,0,0.1) 4px,rgba(0,0,0,0.1) 5px)'}}/>
                         <div style={{overflow:'hidden'}}>
                           <div style={{fontSize:11,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.product_name}</div>
                           <div style={{fontSize:10,color:'#6366f1'}}>₹{p.unit_price}/{p.unit}</div>

@@ -14,11 +14,17 @@ const supplierRoutes = require('./routes/suppliers');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// ── CORS — allow all origins (fixes Railway cross-service requests) ──
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
+}));
+app.options('*', cors()); // Handle preflight for all routes
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 // Routes
 app.use('/api/auth', authRoutes);

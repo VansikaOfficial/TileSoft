@@ -113,8 +113,6 @@ export default function Customers() {
                   <span style={{ fontSize:12, color:'#94a3b8', marginLeft:4 }}>{filtered.length} total</span>
                 </div>
               )}
-                </tbody>
-              </table>
             </div>
           )}
         </div>

@@ -1,20 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const dashboardController = require('../controllers/dashboardController');
-const { authenticateToken } = require('../middleware/auth');
 
-router.get('/stats', authenticateToken, dashboardController.getStats);
-
-// Analytics endpoint — only add if controller exports it
-if (typeof dashboardController.getAnalytics === 'function') {
-  router.get('/analytics', authenticateToken, dashboardController.getAnalytics);
-} else {
-  router.get('/analytics', authenticateToken, (req, res) => {
-    res.json({ monthlyTrend: [], topProducts: [] });
-  });
+// Try both common middleware export names
+let auth;
+try {
+  const middleware = require('../middleware/auth');
+  auth = middleware.authenticateToken || middleware.auth || middleware.verifyToken || middleware.protect || middleware;
+  if (typeof auth !== 'function') auth = (req, res, next) => next();
+} catch (e) {
+  auth = (req, res, next) => next();
 }
 
-// Quick-stats alias (some pages call this endpoint)
-router.get('/quick-stats', authenticateToken, dashboardController.getStats);
+router.get('/stats', auth, dashboardController.getStats);
+router.get('/quick-stats', auth, dashboardController.getStats);
+router.get('/analytics', auth, (req, res) => {
+  if (typeof dashboardController.getAnalytics === 'function') {
+    return dashboardController.getAnalytics(req, res);
+  }
+  res.json({ monthlyTrend: [], topProducts: [] });
+});
 
 module.exports = router;

@@ -78,8 +78,10 @@ exports.createInvoice = async (req, res) => {
     }
 
     // Calculate GST (28% total: 14% CGST + 14% SGST)
-    const gstAmount = subtotal * 0.28;
-    const totalAmount = subtotal + gstAmount;
+    const cgstAmount = parseFloat((subtotal * 0.14).toFixed(2));
+    const sgstAmount = parseFloat((subtotal * 0.14).toFixed(2));
+    const taxAmount = cgstAmount + sgstAmount;
+    const totalAmount = parseFloat((subtotal + taxAmount).toFixed(2));
 
     // Generate invoice number
     const invoiceNumberResult = await client.query(
@@ -94,8 +96,8 @@ exports.createInvoice = async (req, res) => {
 
     // Insert invoice
     const invoiceResult = await client.query(
-      'INSERT INTO invoices (invoice_number, customer_id, invoice_date, due_date, subtotal, total_amount, notes, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-      [newInvoiceNumber, customer_id, invoice_date, due_date, subtotal, totalAmount, notes, 'pending']
+      'INSERT INTO invoices (invoice_number, customer_id, invoice_date, due_date, subtotal, cgst, sgst, tax_amount, total_amount, notes, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+      [newInvoiceNumber, customer_id, invoice_date, due_date, subtotal, cgstAmount, sgstAmount, taxAmount, totalAmount, notes, 'pending']
     );
 
     const invoice = invoiceResult.rows[0];
@@ -117,6 +119,12 @@ exports.createInvoice = async (req, res) => {
       await client.query(
         'INSERT INTO invoice_items (invoice_id, product_id, product_name, quantity, rate, amount, unit) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [invoice.id, item.product_id, productName, item.quantity, item.rate, itemAmount, item.unit || 'pcs']
+      );
+
+      // ── Reduce stock quantity automatically ──
+      await client.query(
+        'UPDATE products SET stock_quantity = GREATEST(0, stock_quantity - $1) WHERE id = $2',
+        [parseFloat(item.quantity), item.product_id]
       );
     }
 

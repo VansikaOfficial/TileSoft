@@ -36,6 +36,8 @@ export default function Products() {
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 12;
   const fileRef = useRef();
 
   useEffect(() => { load(); }, []);
@@ -83,6 +85,12 @@ export default function Products() {
     const mst = !stockFilter || (stockFilter==='out' && (p.stock_quantity||0)<=0) || (stockFilter==='low' && (p.stock_quantity||0)>0 && (p.stock_quantity||0)<=(p.reorder_level||50)) || (stockFilter==='ok' && (p.stock_quantity||0)>(p.reorder_level||50));
     return ms && mc && mst;
   });
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [search, catFilter, stockFilter]);
 
   const outOfStock = products.filter(p=>parseInt(p.stock_quantity||0)<=0).length;
   const lowStock = products.filter(p=>parseInt(p.stock_quantity||0)>0&&parseInt(p.stock_quantity||0)<=parseInt(p.reorder_level||10)).length;
@@ -149,9 +157,9 @@ export default function Products() {
               <table>
                 <thead><tr><th>#</th><th>Product</th><th>Category</th><th>HSN</th><th>Rate</th><th>Stock</th><th>Size</th><th>Unit</th>{canEdit&&<th>Actions</th>}</tr></thead>
                 <tbody>
-                  {filtered.map((p,i)=>(
+                  {paginated.map((p,i)=>(
                     <tr key={p.id}>
-                      <td style={{ color:'#94a3b8', fontSize:13 }}>{i+1}</td>
+                      <td style={{ color:'#94a3b8', fontSize:13 }}>{(page-1)*PAGE_SIZE+i+1}</td>
                       <td><div style={{ display:'flex', alignItems:'center', gap:10 }}><TilePreview product={p} size={40} /><div><strong>{p.product_name}</strong><div style={{ fontSize:11, color:'#94a3b8' }}>{p.color}</div></div></div></td>
                       <td><span style={{ background:'#f1f5f9', padding:'2px 8px', borderRadius:6, fontSize:12, fontWeight:600 }}>{p.category||'Floor Tiles'}</span></td>
                       <td><span style={{ fontFamily:'monospace', background:'#f1f5f9', padding:'2px 8px', borderRadius:4, fontSize:12 }}>{p.hsn_code}</span></td>
@@ -167,7 +175,7 @@ export default function Products() {
             </div>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(190px,1fr))', gap:14, padding:16 }}>
-              {filtered.map(p=>(
+              {paginated.map(p=>(
                 <div key={p.id} style={{ border:'1px solid #e2e8f0', borderRadius:12, overflow:'hidden', background:'white' }}>
                   <div style={{ height:130, background:'#f8fafc', display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }}>
                     {p.image_url ? <img src={p.image_url} alt={p.product_name} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <div style={{ width:80, height:80, borderRadius:8, background:TILE_COLORS[p.color]||'#e2e8f0', backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 14px,rgba(0,0,0,0.07) 14px,rgba(0,0,0,0.07) 15px),repeating-linear-gradient(90deg,transparent,transparent 14px,rgba(0,0,0,0.07) 14px,rgba(0,0,0,0.07) 15px)' }} />}
@@ -182,6 +190,17 @@ export default function Products() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, padding:'14px 16px', borderTop:'1px solid #f1f5f9' }}>
+              <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} style={{ padding:'6px 14px', borderRadius:8, border:'1px solid #e2e8f0', background:page===1?'#f8fafc':'white', cursor:page===1?'default':'pointer', fontWeight:600, color:page===1?'#cbd5e1':'#374151' }}>← Prev</button>
+              {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
+                <button key={n} onClick={()=>setPage(n)} style={{ width:34, height:34, borderRadius:8, border:'none', background:page===n?'#6366f1':'#f1f5f9', color:page===n?'white':'#374151', fontWeight:700, cursor:'pointer', fontSize:13 }}>{n}</button>
+              ))}
+              <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages} style={{ padding:'6px 14px', borderRadius:8, border:'1px solid #e2e8f0', background:page===totalPages?'#f8fafc':'white', cursor:page===totalPages?'default':'pointer', fontWeight:600, color:page===totalPages?'#cbd5e1':'#374151' }}>Next →</button>
+              <span style={{ fontSize:12, color:'#94a3b8', marginLeft:4 }}>{filtered.length} total</span>
             </div>
           )}
         </div>

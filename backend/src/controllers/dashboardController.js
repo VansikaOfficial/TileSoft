@@ -63,10 +63,14 @@ const monthlyResult = await pool.query(`
 
 // Top selling products from invoice items
 const topProductsResult = await pool.query(`
-  SELECT p.product_name as name, COALESCE(SUM(ii.quantity),0) as sales
-  FROM products p
-  LEFT JOIN invoice_items ii ON ii.product_id = p.id
-  GROUP BY p.product_name
+  SELECT 
+    COALESCE(p.product_name, ii.product_name, 'Unknown') as name,
+    COALESCE(SUM(ii.quantity), 0)::float as sales
+  FROM invoice_items ii
+  LEFT JOIN products p ON p.id = ii.product_id
+  LEFT JOIN invoices i ON i.id = ii.invoice_id
+  WHERE i.status IN ('paid', 'partial')
+  GROUP BY COALESCE(p.product_name, ii.product_name, 'Unknown')
   ORDER BY sales DESC
   LIMIT 5
 `);
@@ -86,6 +90,43 @@ res.json({
 
   } catch (error) {
     console.error('Get stats error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get analytics separately (called by dashboard frontend)
+exports.getAnalytics = async (req, res) => {
+  try {
+    const monthlyResult = await pool.query(`
+      SELECT 
+        TO_CHAR(invoice_date, 'Mon') as month,
+        COALESCE(SUM(total_amount), 0)::float as revenue
+      FROM invoices
+      WHERE status = 'paid'
+        AND invoice_date >= NOW() - INTERVAL '6 months'
+      GROUP BY TO_CHAR(invoice_date, 'Mon'), DATE_TRUNC('month', invoice_date)
+      ORDER BY DATE_TRUNC('month', invoice_date)
+    `);
+
+    const topProductsResult = await pool.query(`
+      SELECT 
+        COALESCE(p.product_name, ii.product_name, 'Unknown') as name,
+        COALESCE(SUM(ii.quantity), 0)::float as sales
+      FROM invoice_items ii
+      LEFT JOIN products p ON p.id = ii.product_id
+      LEFT JOIN invoices i ON i.id = ii.invoice_id
+      WHERE i.status IN ('paid', 'partial')
+      GROUP BY COALESCE(p.product_name, ii.product_name, 'Unknown')
+      ORDER BY sales DESC
+      LIMIT 5
+    `);
+
+    res.json({
+      monthlyTrend: monthlyResult.rows,
+      topProducts: topProductsResult.rows,
+    });
+  } catch (error) {
+    console.error('Get analytics error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

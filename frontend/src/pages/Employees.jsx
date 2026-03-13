@@ -22,6 +22,8 @@ export default function Employees() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => { load(); }, []);
 
@@ -68,6 +70,10 @@ export default function Employees() {
     return matchSearch && matchDept;
   });
 
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  useEffect(() => { setPage(1); }, [search, deptFilter]);
+
   const statusColor = { active: { bg: '#d1fae5', color: '#065f46' }, on_leave: { bg: '#fef3c7', color: '#92400e' }, terminated: { bg: '#fee2e2', color: '#991b1b' } };
   return (
     <>
@@ -109,11 +115,11 @@ export default function Employees() {
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr><td colSpan="9"><div className="empty-state"><div className="empty-state-icon">👤</div><p>No employees found</p></div></td></tr>
-                  ) : filtered.map((emp, i) => {
+                  ) : paginated.map((emp, i) => {
                     const sc = statusColor[emp.status] || statusColor.active;
                     return (
                       <tr key={emp.id}>
-                        <td style={{ color: '#94a3b8', fontSize: 13 }}>{i + 1}</td>
+                        <td style={{ color: '#94a3b8', fontSize: 13 }}>{(page-1)*PAGE_SIZE+i + 1}</td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
@@ -140,6 +146,18 @@ export default function Employees() {
                       </tr>
                     );
                   })}
+                </tbody>
+              </table>
+              {totalPages > 1 && (
+                <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:8, padding:'14px 16px', borderTop:'1px solid #f1f5f9' }}>
+                  <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} style={{ padding:'6px 14px', borderRadius:8, border:'1px solid #e2e8f0', background:page===1?'#f8fafc':'white', cursor:page===1?'default':'pointer', fontWeight:600, color:page===1?'#cbd5e1':'#374151' }}>← Prev</button>
+                  {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
+                    <button key={n} onClick={()=>setPage(n)} style={{ width:34, height:34, borderRadius:8, border:'none', background:page===n?'#6366f1':'#f1f5f9', color:page===n?'white':'#374151', fontWeight:700, cursor:'pointer', fontSize:13 }}>{n}</button>
+                  ))}
+                  <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages} style={{ padding:'6px 14px', borderRadius:8, border:'1px solid #e2e8f0', background:page===totalPages?'#f8fafc':'white', cursor:page===totalPages?'default':'pointer', fontWeight:600, color:page===totalPages?'#cbd5e1':'#374151' }}>Next →</button>
+                  <span style={{ fontSize:12, color:'#94a3b8', marginLeft:4 }}>{filtered.length} total</span>
+                </div>
+              )}
                 </tbody>
               </table>
             </div>

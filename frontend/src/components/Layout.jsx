@@ -42,7 +42,7 @@ export default function Layout({ children }) {
 
   return (
     <div className="app-layout">
-      {/* Mobile overlay — tap outside to close sidebar */}
+      {/* Mobile overlay */}
       {!collapsed && window.innerWidth < 768 && (
         <div
           onClick={() => setCollapsed(true)}
@@ -52,7 +52,12 @@ export default function Layout({ children }) {
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <div
         className="main-content"
-        style={{ marginLeft: collapsed ? 0 : undefined, transition:'margin 0.25s' }}
+        style={{
+          marginLeft: collapsed ? 0 : 240,
+          transition: 'margin-left 0.25s ease',
+          width: collapsed ? '100%' : 'calc(100% - 240px)',
+          minHeight: '100vh',
+        }}
       >
         {children}
       </div>

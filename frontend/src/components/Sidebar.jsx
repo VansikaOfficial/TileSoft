@@ -137,10 +137,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         </div>
       </div>
 
-      {/* ── Push main content right when sidebar is open on desktop ── */}
-      {!isMobile && !collapsed && (
-        <div style={{ width: 240, flexShrink: 0 }} />
-      )}
     </>
   );
 }

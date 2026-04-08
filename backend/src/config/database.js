@@ -1,3 +1,4 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; 
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
@@ -5,9 +6,10 @@ require('dotenv').config();
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
+  
 });
 
-const initDB = async () => {
+async function initDB() {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -174,7 +176,7 @@ const initDB = async () => {
   } catch (err) {
     console.error('❌ Database init error:', err.message);
   }
-};
+}
 
 initDB();
 

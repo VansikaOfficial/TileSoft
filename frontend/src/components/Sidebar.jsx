@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { path: '/suppliers', label: 'Suppliers', icon: '🏭' },
   { path: '/attendance', label: 'Attendance', icon: '📅' },
   { path: '/reports', label: 'Reports', icon: '📈' },
-  { path: '/gst-report', label: 'GST Report', icon: '📋', roles: ['admin','manager'] },
+  { path: '/gst-report', label: 'GST Report', icon: '📋' },
   { divider: true },
   { path: '/wastage-calculator', label: 'Wastage Calc', icon: '🧮' },
   { path: '/dynamic-pricing', label: 'Dynamic Pricing', icon: '💲' },
@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { path: '/project-estimator', label: 'Project Estimator', icon: '🧮' },
 ];
 
-export default function Sidebar({ collapsed, setCollapsed }) {
+export default function Sidebar({ collapsed, setCollapsed, isMobile }) {
   const navigate = useNavigate();
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -29,18 +29,21 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     navigate('/login');
   };
 
-  const isMobile = window.innerWidth < 768;
+  const handleNav = (path) => {
+    navigate(path);
+    if (isMobile) setCollapsed(true);
+  };
 
   return (
     <>
-      {/* ── Hamburger button — always visible when sidebar is closed ── */}
+      {/* ── Hamburger Button (shows when sidebar is closed) ── */}
       {collapsed && (
         <button
           onClick={() => setCollapsed(false)}
           style={{
             position: 'fixed',
-            top: 14,
-            left: 14,
+            top: 12,
+            left: 12,
             zIndex: 200,
             background: '#1e293b',
             border: 'none',
@@ -53,34 +56,35 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
           }}
           title="Open menu"
+          aria-label="Open navigation menu"
         >
           ☰
         </button>
       )}
 
-      {/* ── Sidebar panel ── */}
+      {/* ── Sidebar Panel ── */}
       <div
         className="sidebar"
         style={{
-          position: isMobile ? 'fixed' : 'fixed',
+          position: 'fixed',
           top: 0,
           left: 0,
           height: '100vh',
           zIndex: 100,
           transform: collapsed ? 'translateX(-100%)' : 'translateX(0)',
           transition: 'transform 0.25s ease',
+          width: 240,
         }}
       >
-        {/* Header with close button */}
+        {/* Header */}
         <div className="sidebar-header" style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
             <div className="sidebar-logo">TileSoft</div>
             <div className="sidebar-subtitle">Smart ERP System</div>
           </div>
-          {/* Close / collapse button */}
           <button
             onClick={() => setCollapsed(true)}
             style={{
@@ -98,12 +102,13 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               flexShrink: 0,
             }}
             title="Close menu"
+            aria-label="Close navigation menu"
           >
             ✕
           </button>
         </div>
 
-        {/* Nav items */}
+        {/* Navigation */}
         <nav className="sidebar-nav">
           {NAV_ITEMS.map((item, i) => {
             if (item.divider) return (
@@ -113,7 +118,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               <button
                 key={item.path}
                 className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-                onClick={() => navigate(item.path)}
+                onClick={() => handleNav(item.path)}
               >
                 <span className="nav-icon">{item.icon}</span>
                 {item.label}
@@ -128,15 +133,16 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             <div className="user-avatar">
               {(user.name || user.email || 'U')[0].toUpperCase()}
             </div>
-            <div>
+            <div style={{ overflow: 'hidden' }}>
               <div className="user-email">{user.email || 'user@tilesoft.com'}</div>
               <div className="user-role">{user.role || 'Admin'}</div>
             </div>
           </div>
-          <button className="logout-btn" onClick={handleLogout}>➜ Logout</button>
+          <button className="logout-btn" onClick={handleLogout}>
+            ➜ Logout
+          </button>
         </div>
       </div>
-
     </>
   );
 }

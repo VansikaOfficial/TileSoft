@@ -221,7 +221,7 @@ function ThreeRoom({ floorTile, wallTile, paintColor, room, tileSize }) {
     const n = Math.round(80/ts*6);
 
     const fhex = getTileColor(floorTile);
-    const whex = getTileColor(wallTile);
+    const whex = wallTile ? getTileColor(wallTile) : null;
     const phex = paintColor ? paintColor.hex : '#f0ede8';
 
     const loader = new THREE.TextureLoader();
@@ -418,7 +418,7 @@ function ThreeRoom({ floorTile, wallTile, paintColor, room, tileSize }) {
 }
 
 const Panel = ({ children }) => (
-  <div style={{ display:'flex', flexDirection:'column', gap:12, overflowY:'auto', height:'100%', minHeight:0 }}>
+  <div style={{ display:'flex', flexDirection:'column', gap:12, overflowY:'auto', maxHeight:'100%' }}>
     {children}
   </div>
 );
@@ -484,10 +484,10 @@ export default function RoomVisualizer() {
       </div>
 
       {/* Body */}
-      <div style={{ flex:1, display:'grid', gridTemplateColumns:'220px 1fr 220px', gap:12, padding:12, minHeight:0, overflow:'hidden' }}>
+      <div style={{ flex:1, display:'grid', gridTemplateColumns:'220px 1fr 220px', gap:12, padding:12, overflow:'hidden', minHeight:0 }}>
 
         {/* LEFT PANEL */}
-        <div style={{ overflowY:'auto', height:'100%', display:'flex', flexDirection:'column', gap:12, minHeight:0, paddingRight:2 }}>
+        <Panel>
           {/* Floor/Wall tabs */}
           <Box>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr' }}>
@@ -553,7 +553,7 @@ export default function RoomVisualizer() {
               </div>
             </div>
           </Box>
-        </div>
+        </Panel>
 
         {/* 3D CANVAS */}
         <div style={{ background:'white', borderRadius:12, boxShadow:'0 1px 4px rgba(0,0,0,0.08)', overflow:'hidden', display:'flex', flexDirection:'column', minHeight:0 }}>
@@ -585,7 +585,7 @@ export default function RoomVisualizer() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div style={{ overflowY:'auto', height:'100%', display:'flex', flexDirection:'column', gap:12, minHeight:0, paddingRight:2 }}>
+        <Panel>
           {/* Paint */}
           <Box>
             <BoxHead icon="🎨" title="Wall Paint"/>
@@ -669,7 +669,7 @@ export default function RoomVisualizer() {
               </button>
             </div>
           </Box>
-        </div>
+        </Panel>
       </div>
     </div>
   );

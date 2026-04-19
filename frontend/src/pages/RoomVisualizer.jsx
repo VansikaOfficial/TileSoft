@@ -418,7 +418,7 @@ function ThreeRoom({ floorTile, wallTile, paintColor, room, tileSize }) {
 }
 
 const Panel = ({ children }) => (
-  <div style={{ display:'flex', flexDirection:'column', gap:12, overflowY:'auto', maxHeight:'100%' }}>
+  <div style={{ display:'flex', flexDirection:'column', gap:12, overflowY:'auto', height:'100%', minHeight:0 }}>
     {children}
   </div>
 );
@@ -484,10 +484,10 @@ export default function RoomVisualizer() {
       </div>
 
       {/* Body */}
-      <div style={{ flex:1, display:'grid', gridTemplateColumns:'220px 1fr 220px', gap:12, padding:12, overflow:'hidden', minHeight:0 }}>
+      <div style={{ flex:1, display:'grid', gridTemplateColumns:'220px 1fr 220px', gap:12, padding:12, minHeight:0, overflow:'hidden' }}>
 
         {/* LEFT PANEL */}
-        <Panel>
+        <div style={{ overflowY:'auto', height:'100%', display:'flex', flexDirection:'column', gap:12, minHeight:0, paddingRight:2 }}>
           {/* Floor/Wall tabs */}
           <Box>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr' }}>
@@ -553,7 +553,7 @@ export default function RoomVisualizer() {
               </div>
             </div>
           </Box>
-        </Panel>
+        </div>
 
         {/* 3D CANVAS */}
         <div style={{ background:'white', borderRadius:12, boxShadow:'0 1px 4px rgba(0,0,0,0.08)', overflow:'hidden', display:'flex', flexDirection:'column', minHeight:0 }}>
@@ -585,7 +585,7 @@ export default function RoomVisualizer() {
         </div>
 
         {/* RIGHT PANEL */}
-        <Panel>
+        <div style={{ overflowY:'auto', height:'100%', display:'flex', flexDirection:'column', gap:12, minHeight:0, paddingRight:2 }}>
           {/* Paint */}
           <Box>
             <BoxHead icon="🎨" title="Wall Paint"/>
@@ -669,7 +669,7 @@ export default function RoomVisualizer() {
               </button>
             </div>
           </Box>
-        </Panel>
+        </div>
       </div>
     </div>
   );

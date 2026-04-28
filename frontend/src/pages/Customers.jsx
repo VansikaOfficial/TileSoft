@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 
-const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
 const EMPTY_FORM = { company_name: '', contact_person: '', email: '', phone: '', address: '', gst_number: '' };
 
 export default function Customers() {
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+  const todayISO = new Date().toISOString().split('T')[0];
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canEdit = ['admin', 'manager'].includes(user.role);
   const [customers, setCustomers] = useState([]);

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 
-const today = new Date().toLocaleDateString('en-US', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
 const EMPTY_FORM = { product_name:'', hsn_code:'', rate:'', unit:'sqft', image_url:'', category:'Floor Tiles', color:'Beige', size:'600x600mm', stock_quantity:0, reorder_level:50 };
 const UNITS = ['sqft','piece','box','meter','kg','set'];
 const CATEGORIES = ['Floor Tiles','Wall Tiles','Outdoor Tiles','Bathroom Tiles','Kitchen Tiles','Designer Tiles'];
@@ -22,6 +21,8 @@ function TilePreview({ product, size=40 }) {
 }
 
 export default function Products() {
+  const today = new Date().toLocaleDateString('en-US', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+  const todayISO = new Date().toISOString().split('T')[0];
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canEdit = ['admin','manager'].includes(user.role);
   const [products, setProducts] = useState([]);

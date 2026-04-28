@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-
-const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
 const EMPTY_FORM = { name: '', contact_person: '', email: '', phone: '', address: '', city: '', state: '', gst_number: '', payment_terms: 'Net 30', rating: 5 };
 const PAYMENT_TERMS = ['Advance', 'Net 7', 'Net 15', 'Net 30', 'Net 45', 'Net 60'];
 const STATES = ['Andhra Pradesh','Karnataka','Kerala','Tamil Nadu','Telangana','Maharashtra','Gujarat','Rajasthan','Delhi','Uttar Pradesh','West Bengal','Other'];
 
 export default function Suppliers() {
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+  const todayISO = new Date().toISOString().split('T')[0];
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canEdit = ['admin', 'manager'].includes(user.role);
   const [suppliers, setSuppliers] = useState([]);

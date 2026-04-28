@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-
-const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
-const todayISO = new Date().toISOString().split('T')[0];
-
 const DEPARTMENTS = [
   { id: 1, name: 'Sales' }, { id: 2, name: 'Operations' }, { id: 3, name: 'Accounts' },
   { id: 4, name: 'HR' }, { id: 5, name: 'IT' }, { id: 6, name: 'Marketing' }
@@ -11,6 +7,8 @@ const DEPARTMENTS = [
 const EMPTY_FORM = { name: '', employee_code: '', designation: '', salary: '', date_of_joining: todayISO, department_id: '', address: '', status: 'active' };
 
 export default function Employees() {
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+  const todayISO = new Date().toISOString().split('T')[0];
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canEdit = ['admin', 'manager'].includes(user.role);
   const [employees, setEmployees] = useState([]);

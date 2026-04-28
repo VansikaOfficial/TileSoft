@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
 
-const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
-const daysSince = (d) => d ? Math.floor((new Date() - new Date(d)) / 86400000) : 0;
 
 export default function Dashboard() {
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+  const daysSince = (d) => d ? Math.floor((new Date() - new Date(d)) / 86400000) : 0;
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [stats, setStats] = useState({});
   const [analytics, setAnalytics] = useState({ monthlyTrend: [], topProducts: [] });

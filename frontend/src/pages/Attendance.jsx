@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 
+const nowTime = new Date().toTimeString().slice(0, 5);
+const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
 
 const STATUS_COLORS = {
   present: { bg: '#d1fae5', color: '#065f46', icon: '✅' },
@@ -9,10 +11,6 @@ const STATUS_COLORS = {
 };
 
 export default function Attendance() {
-  const todayISO = new Date().toISOString().split('T')[0];
-  const nowTime = new Date().toTimeString().slice(0, 5);
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
-
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canEdit = ['admin', 'manager'].includes(user.role);
   const [summary, setSummary] = useState([]);
